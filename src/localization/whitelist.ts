@@ -1,4 +1,4 @@
-import { BaseWindow, BrowserWindow, MenuItem, MenuItemConstructorOptions, KeyboardEvent } from 'electron';
+import { MenuItemConstructorOptions } from 'electron';
 import type { i18n } from 'i18next';
 
 // Contains a whitelist of languages for our app
