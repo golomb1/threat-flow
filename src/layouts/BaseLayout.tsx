@@ -1,24 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import DragWindowRegion from "@/components/DragWindowRegion";
-import NavigationMenu from "@/components/template/NavigationMenu";
 import App_manifest from "@/config/app.config";
-import { AppSidebar, NavMainActiveItem, NavMainSection, SubItem } from "@/components/AppSideBar";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import NavMenuData, { DEFAULT_ACTIVE } from "@/nav/NavMenuData";
-import { useLocation, useMatchRoute, useParams } from "@tanstack/react-router";
+import { SubItem } from "@/components/AppSideBar";
+import AppShell from "@/components/template/AppShell";
 
 const mails: SubItem[] = [
   {
@@ -103,105 +87,17 @@ const mails: SubItem[] = [
   },
 ]
 
-const localStorageKeyGetLastState = "menu:last:active"
-
-export function retrieveMenuState(): NavMainActiveItem {
-  const menuSectionKey : string | null = localStorage.getItem(localStorageKeyGetLastState);
-  if (menuSectionKey){
-    return JSON.parse(menuSectionKey) as NavMainActiveItem;
-  } else {
-    return DEFAULT_ACTIVE;
-  }
-}
-
-
-export function retrieveSubMenuState(key: string): SubItem | null {
-  const localStorageKeyGetLastSubItem = `menu:last:${key}:active`
-  const result : string | null = localStorage.getItem(localStorageKeyGetLastSubItem);
-  if (!result){
-    return null;
-  } else {
-    return JSON.parse(result) as SubItem;
-  }
-}
-
-export function saveSubMenuState(key: string, item: SubItem): void {
-  const localStorageKeyGetLastSubItem = `menu:last:${key}:active`
-  localStorage.setItem(localStorageKeyGetLastSubItem, JSON.stringify(item));
-}
-
-function getItemById(id: string): SubItem | null {
-  return mails.find((i)=>i.name===id) ?? null
-}
-
-function findActiveItem(sections: NavMainSection[], path: string, id: string | undefined) {
-  const matchRoute = useMatchRoute()
-  for (const section of sections) {
-    for (const item of section.items) {
-      const result = matchRoute({to: item.url, fuzzy: true}) || matchRoute({to: item.url.replace("$projectId", ""), fuzzy: true})
-      console.log('item', result)
-      if (result) {
-        return {
-          key: section.key,
-          navItem: item,
-          item: id ? getItemById(id) : null,
-        };
-      }
-    }
-  }
-  return DEFAULT_ACTIVE;
-}
 export default function BaseLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
-  const location = useLocation()
-  const params = useParams({ strict: false})
-  console.log('location', location)
-  console.log('params', params)
-  const activeItem = findActiveItem(NavMenuData.navMain, location.pathname, params.projectId)
-  console.log('activeItem', activeItem)
-
   return (
     <>
       <DragWindowRegion title={App_manifest.name} />
-      <SidebarProvider       style={
-        {
-          "--sidebar-width": "350px",
-        } as React.CSSProperties
-      }
-      >
-        <AppSidebar
-          data={NavMenuData}
-          activeItem={activeItem}
-          loadLastActiveSubItem={retrieveSubMenuState}
-          getActiveItemSubItems={(_: string) => mails}
-        />
-        <SidebarInset>
-          <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b p-4">
-            <SidebarTrigger className="-ml-1" disabled={!activeItem.navItem.hasSubItems} />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">{activeItem?.navItem?.title}</BreadcrumbLink>
-                </BreadcrumbItem>
-                {activeItem?.navItem?.hasSubItems && <BreadcrumbSeparator className="hidden md:block" />}
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{activeItem?.item?.name}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </header>
-          <NavigationMenu />
-          <main className="h-screen pb-20 p-2">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
+      <AppShell subItems={mails}>
+        {children}
+      </AppShell>
     </>
   );
 }

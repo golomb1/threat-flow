@@ -22,11 +22,10 @@ import { Button } from "@/components/ui/button";
 import { flattenWithSeparator } from "@/utils/flatlist";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useMemo } from "react";
-import { Link, ToPathOption, useNavigate } from "@tanstack/react-router";
+import { ToPathOption, useNavigate } from "@tanstack/react-router";
 
 export interface NavMainItem {
   title: string
-  url: ToPathOption
   icon: React.ComponentType<React.ComponentProps<"svg">>
   isActive: boolean
   hasSubItems: boolean
@@ -42,6 +41,7 @@ export interface SubItem {
 
 export interface NavMainSection {
   key: string
+  url: ToPathOption
   items: NavMainItem[]
 }
 
@@ -57,22 +57,37 @@ export interface MenuData {
 
 export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar>{
   data: MenuData
-  activeItem: NavMainActiveItem
+  activeItem?: NavMainActiveItem
+  setActiveItem?: React.Dispatch<React.SetStateAction<NavMainActiveItem>>
+
   loadLastActiveSubItem?: (key: string) => SubItem | null
   getActiveItemSubItems: (key: string) => SubItem[]
 }
 
-export function AppSidebar({
-                             data,
-                             activeItem ,
-                             loadLastActiveSubItem,
-                             getActiveItemSubItems,
-                             ...props }: AppSidebarProps)
+export function SPAAppSidebar({
+                                data,
+                                activeItem: controlledActiveItem ,
+                                setActiveItem: controlledSetActiveItem,
+                                loadLastActiveSubItem,
+                                getActiveItemSubItems,
+                                ...props }: AppSidebarProps)
 {
   // Note: I'm using state to show an active item.
   // IRL you should use the url/router.
-  const { setOpen } = useSidebar()
+  const [internalActiveItem, setInternalActiveItem] = React.useState<NavMainActiveItem>({
+    key: data.navMain[0].key,
+    navItem: data.navMain[0].items[0],
+    item: loadLastActiveSubItem ? loadLastActiveSubItem(data.navMain[0].key) : null
+  })
+  const { setOpen, toggleSidebar } = useSidebar()
+
   const [query, setQuery] = React.useState<string>("")
+  const activeItem: NavMainActiveItem = controlledActiveItem ?? internalActiveItem;
+  const setActiveItem = controlledSetActiveItem ?? setInternalActiveItem;
+
+  if (activeItem.navItem.hasSubItems && activeItem.item === null){
+    setOpen(true)
+  }
 
   const subItems: SubItem[] = useMemo(() => {
     return getActiveItemSubItems(activeItem.key)
@@ -84,37 +99,29 @@ export function AppSidebar({
     return subItems.filter((item) => JSON.stringify(item).toLowerCase().includes(query.toLowerCase()))
   }, [query, subItems]);
 
+  const setActiveSubItem = (item: SubItem | null) => {
+    return setActiveItem((o) => { return {...o, item: item }})
+  }
+
   const navigate = useNavigate();
 
-  const onSelectNavItem = async (key: string, item: NavMainItem) => {
-    if (activeItem.key === key) {
-      await navigate({
-        to: item.url,
-        params: { projectId: activeItem.item?.name ?? '' }
+  const onSelectNavItem = async (section: NavMainSection, item: NavMainItem) => {
+    if (activeItem.key === section.key) {
+      setActiveItem((o) => {
+        return { ...o, navItem: item }
       });
     } else {
-      if (!item.hasSubItems) {
-        await navigate({
-          to: item.url,
-          params: { projectId: "" }
-        });
-      }
-      if (loadLastActiveSubItem) {
-        const activeSubItem = loadLastActiveSubItem(key)
-        if (activeSubItem === null) {
-          setOpen(true)
+      setActiveItem((o) => {
+        if (loadLastActiveSubItem) {
+          const last = loadLastActiveSubItem(section.key)
+          return { ...o, key: section.key, navItem: item, item: last }
+        } else {
+          return { ...o, key: section.key, navItem: item, item: null }
         }
-        await navigate({
-          to: item.url,
-          params: { projectId: activeItem.item?.name ?? ''}
-        });
-      } else {
-        setOpen(true)
-        await navigate({
-          to: item.url,
-          params: { projectId: activeItem.item?.name ?? '' }
-        });
-      }
+      });
+      await navigate({
+        to: section.url,
+      });
     }
   };
 
@@ -167,7 +174,7 @@ export function AppSidebar({
                           hidden: false,
                         }}
                         onClick={() => {
-                          onSelectNavItem(navSection.key, item)
+                          onSelectNavItem(navSection, item)
                         }}
                         isActive={activeItem?.navItem.title === item.title}
                         className="px-2.5 md:px-2"
@@ -205,10 +212,12 @@ export function AppSidebar({
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
               {filteredSubItems.map((mail: SubItem) => (
-                <Link
-                  to={activeItem.navItem.url}
-                  params={{ projectId: mail.name ?? "" }}
+                <div
                   key={mail.email}
+                  onClick={() => {
+                    toggleSidebar()
+                    setActiveSubItem(mail)
+                  }}
                   className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex flex-col items-start gap-2 border-b p-4 text-sm leading-tight whitespace-nowrap last:border-b-0"
                 >
                   <div className="flex w-full items-center gap-2">
@@ -219,7 +228,7 @@ export function AppSidebar({
                   <span className="line-clamp-2 w-[260px] text-xs whitespace-break-spaces">
                     {mail.teaser}
                   </span>
-                </Link>
+                </div>
               ))}
             </SidebarGroupContent>
           </SidebarGroup>
