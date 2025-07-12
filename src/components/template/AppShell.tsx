@@ -17,27 +17,10 @@ import {
 } from "@/components/ui/breadcrumb"
 import NavMenuData, { DEFAULT_ACTIVE } from "@/nav/NavMenuData";
 
-export function retrieveSubMenuState(key: string): SubItem | null {
-  const localStorageKeyGetLastSubItem = `menu:last:${key}:active`
-  const result : string | null = localStorage.getItem(localStorageKeyGetLastSubItem);
-  if (!result){
-    return null;
-  } else {
-    return JSON.parse(result) as SubItem;
-  }
-}
-
-export function saveSubMenuState(key: string, item: SubItem): void {
-  const localStorageKeyGetLastSubItem = `menu:last:${key}:active`
-  localStorage.setItem(localStorageKeyGetLastSubItem, JSON.stringify(item));
-}
-
 export interface AppShellProps {
   subItems: SubItem[]
   children: React.ReactNode;
 }
-
-
 
 export default function AppShell({ subItems, children }: AppShellProps) {
   const [activeItem, setActiveItem] = React.useState<NavMainActiveItem>(DEFAULT_ACTIVE)
