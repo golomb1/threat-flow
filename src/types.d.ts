@@ -12,6 +12,13 @@ interface ThemeModeContext {
   system: () => Promise<boolean>;
   current: () => Promise<"dark" | "light" | "system">;
 }
+
+interface LanguageContext {
+  current: () => Promise<string>;
+  update: (language: string) => Promise<string>;
+  onUpdate: (callback: (language: string) => void) => void;
+}
+
 interface ElectronWindow {
   minimize: () => Promise<void>;
   maximize: () => Promise<void>;
@@ -21,4 +28,5 @@ interface ElectronWindow {
 declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
+  language: LanguageContext;
 }

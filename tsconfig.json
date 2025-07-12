@@ -15,7 +15,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/components/lib/utils": ["./src/utils/tailwind.ts"] // Or the specific path to your utils file,
     },
     "outDir": "dist",
     "moduleResolution": "node",

@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@/components/lib/utils": path.resolve(__dirname, "./src/utils/tailwind.ts")
     },
   },
   test: {
