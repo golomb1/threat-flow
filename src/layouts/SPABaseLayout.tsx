@@ -18,7 +18,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import NavMenuData, { DEFAULT_ACTIVE } from "@/nav/NavMenuData";
-import { useLocation, useMatchRoute, useParams } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 
 const mails: SubItem[] = [
   {
@@ -130,40 +130,20 @@ export function saveSubMenuState(key: string, item: SubItem): void {
   localStorage.setItem(localStorageKeyGetLastSubItem, JSON.stringify(item));
 }
 
-function getItemById(id: string): SubItem | null {
-  return mails.find((i)=>i.name===id) ?? null
-}
-
-function findActiveItem(sections: NavMainSection[], path: string, id: string | undefined) {
-  const matchRoute = useMatchRoute()
-  for (const section of sections) {
-    for (const item of section.items) {
-      const result = matchRoute({to: item.url, fuzzy: true}) || matchRoute({to: item.url.replace("$projectId", ""), fuzzy: true})
-      console.log('item', result)
-      if (result) {
-        return {
-          key: section.key,
-          navItem: item,
-          item: id ? getItemById(id) : null,
-        };
-      }
-    }
-  }
-  return DEFAULT_ACTIVE;
-}
-export default function BaseLayout({
+export default function SPABaseLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
 
-  const location = useLocation()
-  const params = useParams({ strict: false})
-  console.log('location', location)
-  console.log('params', params)
-  const activeItem = findActiveItem(NavMenuData.navMain, location.pathname, params.projectId)
-  console.log('activeItem', activeItem)
+  const [activeItem, setActiveItem] = React.useState<NavMainActiveItem>(retrieveMenuState())
 
+  useEffect(() => {
+    localStorage.setItem(localStorageKeyGetLastState, JSON.stringify(activeItem))
+    if (activeItem.item) {
+      saveSubMenuState(activeItem.key, activeItem.item)
+    }
+  }, [activeItem]);
   return (
     <>
       <DragWindowRegion title={App_manifest.name} />
@@ -176,6 +156,7 @@ export default function BaseLayout({
         <AppSidebar
           data={NavMenuData}
           activeItem={activeItem}
+          setActiveItem={setActiveItem}
           loadLastActiveSubItem={retrieveSubMenuState}
           getActiveItemSubItems={(_: string) => mails}
         />

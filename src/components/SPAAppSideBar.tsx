@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { flattenWithSeparator } from "@/utils/flatlist";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useMemo } from "react";
-import { Link, ToPathOption, useNavigate } from "@tanstack/react-router";
+import { ToPathOption,  } from "@tanstack/react-router";
 
 export interface NavMainItem {
   title: string
@@ -57,22 +57,33 @@ export interface MenuData {
 
 export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar>{
   data: MenuData
-  activeItem: NavMainActiveItem
+  activeItem?: NavMainActiveItem
+  setActiveItem?: React.Dispatch<React.SetStateAction<NavMainActiveItem>>
+
   loadLastActiveSubItem?: (key: string) => SubItem | null
   getActiveItemSubItems: (key: string) => SubItem[]
 }
 
-export function AppSidebar({
+export function SPAAppSidebar({
                              data,
-                             activeItem ,
+                             activeItem: controlledActiveItem ,
+                             setActiveItem: controlledSetActiveItem,
                              loadLastActiveSubItem,
                              getActiveItemSubItems,
                              ...props }: AppSidebarProps)
 {
   // Note: I'm using state to show an active item.
   // IRL you should use the url/router.
+  const [internalActiveItem, setInternalActiveItem] = React.useState<NavMainActiveItem>({
+    key: data.navMain[0].key,
+    navItem: data.navMain[0].items[0],
+    item: loadLastActiveSubItem ? loadLastActiveSubItem(data.navMain[0].key) : null
+  })
   const { setOpen } = useSidebar()
+
   const [query, setQuery] = React.useState<string>("")
+  const activeItem: NavMainActiveItem = controlledActiveItem ?? internalActiveItem;
+  const setActiveItem = controlledSetActiveItem ?? setInternalActiveItem;
 
   const subItems: SubItem[] = useMemo(() => {
     return getActiveItemSubItems(activeItem.key)
@@ -84,39 +95,32 @@ export function AppSidebar({
     return subItems.filter((item) => JSON.stringify(item).toLowerCase().includes(query.toLowerCase()))
   }, [query, subItems]);
 
-  const navigate = useNavigate();
+  const setActiveSubItem = (item: SubItem | null) => {
+    return setActiveItem((o) => { return {...o, item: item }})
+  }
 
-  const onSelectNavItem = async (key: string, item: NavMainItem) => {
-    if (activeItem.key === key) {
-      await navigate({
-        to: item.url,
-        params: { projectId: activeItem.item?.name ?? '' }
-      });
-    } else {
-      if (!item.hasSubItems) {
-        await navigate({
-          to: item.url,
-          params: { projectId: "" }
-        });
-      }
-      if (loadLastActiveSubItem) {
-        const activeSubItem = loadLastActiveSubItem(key)
-        if (activeSubItem === null) {
-          setOpen(true)
-        }
-        await navigate({
-          to: item.url,
-          params: { projectId: activeItem.item?.name ?? ''}
-        });
+  const onSelectNavItem = (key: string, item: NavMainItem) => {
+      setActiveItem((o) => {
+      console.log(o)
+      if (o.key === key){
+        return {...o, navItem: item}
       } else {
-        setOpen(true)
-        await navigate({
-          to: item.url,
-          params: { projectId: activeItem.item?.name ?? '' }
-        });
+        if (!item.hasSubItems){
+          return {...o, key: key, navItem: item, item: null}
+        }
+        if (loadLastActiveSubItem) {
+          const activeSubItem = loadLastActiveSubItem(key)
+          if (activeSubItem === null) {
+            setOpen(true)
+          }
+          return {...o, key: key, navItem: item, item: activeSubItem}
+        } else {
+          setOpen(true)
+          return {...o, key: key, navItem: item, item: null}
+        }
       }
-    }
-  };
+    })
+  }
 
   useEffect(() => {
     if (!activeItem.navItem.hasSubItems){
@@ -205,10 +209,9 @@ export function AppSidebar({
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
               {filteredSubItems.map((mail: SubItem) => (
-                <Link
-                  to={activeItem.navItem.url}
-                  params={{ projectId: mail.name ?? "" }}
+                <div
                   key={mail.email}
+                  onClick={() => setActiveSubItem(mail)}
                   className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex flex-col items-start gap-2 border-b p-4 text-sm leading-tight whitespace-nowrap last:border-b-0"
                 >
                   <div className="flex w-full items-center gap-2">
@@ -219,7 +222,7 @@ export function AppSidebar({
                   <span className="line-clamp-2 w-[260px] text-xs whitespace-break-spaces">
                     {mail.teaser}
                   </span>
-                </Link>
+                </div>
               ))}
             </SidebarGroupContent>
           </SidebarGroup>
