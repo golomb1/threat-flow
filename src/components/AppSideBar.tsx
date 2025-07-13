@@ -23,10 +23,12 @@ import { flattenWithSeparator } from "@/utils/flatlist";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useMemo } from "react";
 import { ToPathOption, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 export interface NavMainItem {
   title: string
   icon: React.ComponentType<React.ComponentProps<"svg">>
+  url: ToPathOption
   isActive: boolean
   hasSubItems: boolean
 }
@@ -41,7 +43,6 @@ export interface SubItem {
 
 export interface NavMainSection {
   key: string
-  url: ToPathOption
   items: NavMainItem[]
 }
 
@@ -64,7 +65,7 @@ export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar>{
   getActiveItemSubItems: (key: string) => SubItem[]
 }
 
-export function SPAAppSidebar({
+export function AppSidebar({
                                 data,
                                 activeItem: controlledActiveItem ,
                                 setActiveItem: controlledSetActiveItem,
@@ -79,15 +80,19 @@ export function SPAAppSidebar({
     navItem: data.navMain[0].items[0],
     item: loadLastActiveSubItem ? loadLastActiveSubItem(data.navMain[0].key) : null
   })
-  const { setOpen, toggleSidebar } = useSidebar()
-
+  const { state, setOpen, toggleSidebar } = useSidebar()
+  const { t, i18n } = useTranslation('navbar')
   const [query, setQuery] = React.useState<string>("")
   const activeItem: NavMainActiveItem = controlledActiveItem ?? internalActiveItem;
   const setActiveItem = controlledSetActiveItem ?? setInternalActiveItem;
 
-  if (activeItem.navItem.hasSubItems && activeItem.item === null){
-    setOpen(true)
-  }
+  useEffect(() => {
+    if (activeItem.navItem.hasSubItems && activeItem.item === null){
+      if (state === 'collapsed'){
+        toggleSidebar()
+      }
+    }
+  }, [activeItem])
 
   const subItems: SubItem[] = useMemo(() => {
     return getActiveItemSubItems(activeItem.key)
@@ -106,23 +111,19 @@ export function SPAAppSidebar({
   const navigate = useNavigate();
 
   const onSelectNavItem = async (section: NavMainSection, item: NavMainItem) => {
-    if (activeItem.key === section.key) {
-      setActiveItem((o) => {
-        return { ...o, navItem: item }
-      });
-    } else {
-      setActiveItem((o) => {
-        if (loadLastActiveSubItem) {
-          const last = loadLastActiveSubItem(section.key)
-          return { ...o, key: section.key, navItem: item, item: last }
-        } else {
-          return { ...o, key: section.key, navItem: item, item: null }
-        }
-      });
-      await navigate({
-        to: section.url,
-      });
-    }
+    setActiveItem((o) => {
+      if (loadLastActiveSubItem) {
+        const last = loadLastActiveSubItem(section.key)
+        return { ...o, key: section.key, navItem: item, item: last }
+      } else {
+        return { ...o, key: section.key, navItem: item, item: null }
+      }
+    });
+    await navigate({
+      to: item.url,
+      params: { projectId: activeItem.item?.name ?? ''}
+    });
+
   };
 
   useEffect(() => {
@@ -133,6 +134,7 @@ export function SPAAppSidebar({
 
   return (
     <Sidebar
+      side={i18n.dir() === "ltr" ? "left": "right"}
       collapsible="icon"
       className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
       {...props}
@@ -141,8 +143,9 @@ export function SPAAppSidebar({
       {/* We disable collapsible and adjust width to icon. */}
       {/* This will make the sidebar appear as icons. */}
       <Sidebar
+        side={i18n.dir() === "ltr" ? "left": "right"}
         collapsible="none"
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-e"
       >
         <SidebarHeader>
           <SidebarMenu>
@@ -166,24 +169,24 @@ export function SPAAppSidebar({
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
                 {flattenWithSeparator(data.navMain.map((navSection) => {
-                  return navSection.items.map((item: NavMainItem) => (
-                    <SidebarMenuItem key={item.title}>
+                  return navSection.items.map((item: NavMainItem, idx: number) => (
+                    <SidebarMenuItem key={`${item.title}:${idx}`}>
                       <SidebarMenuButton
                         tooltip={{
-                          children: item.title,
+                          children: t(item.title),
                           hidden: false,
                         }}
-                        onClick={() => {
-                          onSelectNavItem(navSection, item)
+                        onClick={async () => {
+                          await onSelectNavItem(navSection, item)
                         }}
                         isActive={activeItem?.navItem.title === item.title}
                         className="px-2.5 md:px-2"
                       >
                         <item.icon />
-                        <span>{item.title}</span>
+                        <span>{t(item.title)}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  ))}), (<Separator />))}
+                  ))}), ((idx: number) => <Separator key={idx}/>))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -194,19 +197,22 @@ export function SPAAppSidebar({
 
       {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill the remaining space */}
-      {activeItem.navItem.hasSubItems && <Sidebar collapsible="none" className="hidden flex-1 md:flex">
+      {activeItem.navItem.hasSubItems &&
+        <Sidebar
+          side={i18n.dir() === "ltr" ? "left": "right"}
+          collapsible="none" className="hidden flex-1 md:flex">
         <SidebarHeader className="gap-3.5 border-b p-4">
           <div className="flex w-full items-center justify-between">
             <div className="text-foreground text-base font-medium">
-              {activeItem?.navItem.title}
+              {t(activeItem?.navItem.title)}
             </div>
           </div>
           <SidebarInput
             value={query}
-            placeholder="Type to search..."
+            placeholder={t("searchPlaceholder")}
             onChange={(event) => setQuery(event.target.value)}
           />
-          <Button>Add new Project</Button>
+          <Button>{t("addButtonText")}</Button>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup className="px-0">

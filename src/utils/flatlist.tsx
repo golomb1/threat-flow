@@ -17,14 +17,14 @@
  * // Returns: [1, 0, 2, 0, 3]
  * ```
  */
-export function flattenWithSeparator<T, S>(listOfLists: T[][], separator: S): (T | S)[] {
+export function flattenWithSeparator<T, S>(listOfLists: T[][], separator: (index: number) => S): (T | S)[] {
   if (!listOfLists || listOfLists.length === 0) {
     return [];
   }
 
   return listOfLists.flatMap((sublist, index) =>
     index < listOfLists.length - 1
-      ? [...sublist, separator]
+      ? [...sublist, separator(index)]
       : sublist
   );
 }

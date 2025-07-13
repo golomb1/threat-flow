@@ -34,21 +34,76 @@ export const DashboardRoute = createRoute({
   component: HomePage,
 });
 
-export const ProjectRoute = createRoute({
+export const ProjectStatusRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: "/project",
+  path: "/project/status/",
+  component: SecondPage
+})
+export const ProjectOverviewRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/projects_overview/",
+  component: SecondPage
+})
+export const ProjectArchitectureRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/architecture/",
+  component: SecondPage
+})
+export const ProjectLandscapeRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/landscape/",
+  component: SecondPage
+})
+export const ProjectControlCenterRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/control_center/",
+  component: SecondPage
+})
+
+export const ProjectStatusItemRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/status/$projectId",
+  component: SecondPage
+})
+export const ProjectOverviewItemRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/projects_overview/$projectId",
+  component: SecondPage
+})
+export const ProjectArchitectureItemRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/architecture/$projectId",
+  component: SecondPage
+})
+export const ProjectLandscapeItemRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/landscape/$projectId",
+  component: SecondPage
+})
+export const ProjectControlCenterItemRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/project/control_center/$projectId",
   component: SecondPage
 })
 
 export const SecurityParadigmRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: '/paradigm',
+  path: '/security_paradigm',
   component: SecondPage
 })
 
 export const rootTree = RootRoute.addChildren([
   SecondPageRoute,
   DashboardRoute,
-  ProjectRoute,
-  SecurityParadigmRoute
+  ProjectStatusRoute,
+  ProjectOverviewRoute,
+  ProjectArchitectureRoute,
+  ProjectLandscapeRoute,
+  ProjectControlCenterRoute,
+  SecurityParadigmRoute,
+  ProjectStatusItemRoute,
+  ProjectOverviewItemRoute,
+  ProjectArchitectureItemRoute,
+  ProjectLandscapeItemRoute,
+  ProjectControlCenterItemRoute,
 ]);

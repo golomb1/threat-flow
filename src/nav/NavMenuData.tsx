@@ -3,7 +3,7 @@ import { MenuData, NavMainActiveItem } from "@/components/AppSideBar";
 import {
   BookText,
   Compass,
-  DraftingCompass,
+  DraftingCompass, Gauge,
   LayoutDashboard,
   Settings,
   TriangleAlert,
@@ -12,55 +12,59 @@ import {
 const NavMenuData: MenuData = {
   navMain: [{
     key: 'dashboard',
-    url: "/",
     items : [
       {
         title: "Dashboard",
-        icon: LayoutDashboard,
+        url: "/",
+        icon: Gauge,
         isActive: true,
         hasSubItems: false
       }
     ]},
     {
       key: "project",
-      url: "/project",
       items: [
         {
           title: "Status",
+          url: "/project/status/$projectId",
           icon: LayoutDashboard,
           isActive: true,
           hasSubItems: true
         },
         {
           title: "Projects overview",
+          url: "/project/projects_overview/$projectId",
           icon: BookText,
           isActive: true,
           hasSubItems: true
         },
         {
           title: "Architecture",
+          url: "/project/architecture/$projectId",
           icon: DraftingCompass,
           isActive: false,
           hasSubItems: true
         },
         {
           title: "Threat Landscape",
+          url: "/project/landscape/$projectId",
           icon: TriangleAlert,
           isActive: false,
           hasSubItems: true
         },
         {
           title: "Control Center",
+          url: "/project/control_center/$projectId",
           icon: Settings,
           isActive: false,
           hasSubItems: true
         }]},
     {
       key: "paradigm",
-      url: '/paradigm',
       items: [
         {
           title: "Security Paradigm",
+          url: '/security_paradigm',
           icon: Compass,
           isActive: false,
           hasSubItems: true

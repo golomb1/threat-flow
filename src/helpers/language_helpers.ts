@@ -25,5 +25,6 @@ export function listenOnLanguageChange(i18n: i18n): void {
     localStorage.setItem(languageLocalStorageKey, updatedLang);
     await i18n.changeLanguage(updatedLang);
     document.documentElement.lang = updatedLang;
+    document.documentElement.dir = i18n.dir(updatedLang);
   })
 }

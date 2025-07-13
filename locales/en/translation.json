@@ -1,5 +1,25 @@
 {
   "appName": "electron-shadcn",
   "titleHomePage": "Home Page",
-  "titleSecondPage": "Second Page"
+  "titleSecondPage": "Second Page",
+  "about": "about",
+  "Hide App": "Hide App",
+  "Hide Others": "Hide Others",
+  "Show All": "Show All",
+  "Quit": "Quit",
+  "View": "View",
+  "Reload": "Reload",
+  "Full Screen": "Full Screen",
+  "Minimize": "Minimize",
+  "Toggle Developer Tools": "Toggle Developer Tools",
+  "Help": "Help",
+  "About App": "About App",
+  "Language": "Language",
+  "no_security_paradigm_selected" :{
+    "title": "No Security Paradigm Selected",
+    "details": "Select a security paradigm to configure your security policies, or create a custom paradigm tailored to your needs.",
+    "browse": "Browse Templates",
+    "create": "Create Paradigm",
+    "footnote": "Popular paradigms: Zero Trust, Defense in Depth, Least Privilege"
+  }
 }

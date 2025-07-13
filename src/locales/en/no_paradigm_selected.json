@@ -1,0 +1,7 @@
+{
+  "title": "No Security Paradigm Selected",
+  "details": "Select a security paradigm to configure your security policies, or create a custom paradigm tailored to your needs.",
+  "browse": "Browse Templates",
+  "create": "Create Paradigm",
+  "footnote": "Popular paradigms: Zero Trust, Defense in Depth, Least Privilege"
+}
